@@ -1,11 +1,13 @@
 from fastapi import FastAPI, File, UploadFile
 import easyocr
 import os
+import re
+import cv2
 
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
-reader = easyocr.Reader(['id'], gpu=False)
+reader = easyocr.Reader(['id'], gpu=True)
 ALLOWED_EXTENSIONS = {'jpg', 'png'}
 
 def allowed_file(filename):
@@ -28,12 +30,16 @@ async def scan_image(file: UploadFile = File(...)):
         contents = await file.read()
         buffer.write(contents)
     
-    result = reader.readtext(file_name, detail=0)
+    img = cv2.imread(file_name)
+    result = reader.readtext(img, detail=0)
     os.remove(file_name)
 
-   
-    
-    return JSONResponse({'message': result})
+    return JSONResponse(
+        {
+            'result': result
+        },
+        
+    )
 
 if __name__ == '__main__':
     import uvicorn
