@@ -3,10 +3,17 @@ import easyocr
 import os
 import re
 import cv2
-
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 reader = easyocr.Reader(['id'], gpu=True)
 ALLOWED_EXTENSIONS = {'jpg', 'png'}
 
@@ -17,7 +24,7 @@ def allowed_file(filename):
 @app.post('/scan')
 async def scan_image(file: UploadFile = File(...)):
     if not file:
-        return JSONResponse({'error': 'No file provided'}, status_code=400)
+        return JSONResponse({'error': 'No file proviRded'}, status_code=400)
     
     filename = file.filename
     if not allowed_file(filename):
@@ -43,4 +50,4 @@ async def scan_image(file: UploadFile = File(...)):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="localhost", port=8000)
