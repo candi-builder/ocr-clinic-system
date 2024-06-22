@@ -1,0 +1,6 @@
+fastapi
+easyocr
+opencv-python
+google-generativeai
+Pillow
+numpy==1.26
