@@ -86,8 +86,7 @@ async def scan_image(file: UploadFile = File(...)):
 
 @app.post('/scan-bpjs-gemini')
 async def scan_image_gemini(file: UploadFile):
-    # ... (Kode untuk memproses file, memanggil Gemini API, dan mengembalikan hasil)
-    # 1. Simpan gambar ke disk
+   
     filename = file.filename
     file_ext = filename.rsplit('.', 1)[1].lower()
     file_name = f'image.{file_ext}'
@@ -95,24 +94,23 @@ async def scan_image_gemini(file: UploadFile):
         contents = await file.read()
         buffer.write(contents)
     
-    # 2. Konfigurasi Gemini API
-    genai.configure(api_key='AIzaSyDG_Xhy4jDpbuITKkccIPJdO4vXM0POLLk') # Ganti dengan kunci API Google Anda
+    
+    genai.configure(api_key='AIzaSyDG_Xhy4jDpbuITKkccIPJdO4vXM0POLLk') 
 
-    # 3.  Buat model Gemini
+   
     model = genai.GenerativeModel(
         model_name="gemini-1.5-flash",
         system_instruction="Anda adalah system text recognition untuk membaca kartu bpjs, meliputi no kartu, nama, tanggal lahir, nik, faskes tingkat 1 lalu kelas rawat, selain itu tidak diperlukan, berikan raw datanya, dan tidak usah di parsing"
     )
 
-    # 4. Panggil Gemini API
+   
     img = PIL.Image.open(file_name)
     response = model.generate_content(img)
     
-    # 5. Hapus gambar
+   
     os.remove(file_name)
 
-    pattern = r"(\d{12})\n(.+)\n(\d{2}-\d{2}-\d{4})\n(\d{16})\n(.+)\n(.+)"
-
+    pattern = r"(\d{13})\n(.+)\n(\d{2}-\d{2}-\d{4})\n(\d{16})\n(.+)\n(.+)"
     match = re.search(pattern, response.text)
     if match:
         no_kartu = match.group(1)
@@ -133,13 +131,22 @@ async def scan_image_gemini(file: UploadFile):
 
         return JSONResponse(parsed_result)
     else:
-        return JSONResponse({'error': 'Data tidak ditemukan'}, status_code=400)
+        parsed_result = {
+            "no_kartu": "gagal terdeteksi",
+            "nama":  "gagal terdeteksi",
+            "tanggal_lahir":  "gagal terdeteksi",
+            "nik":  "gagal terdeteksi",
+            "faskes":  "gagal terdeteksi",
+            "kelas_rawat":  "gagal terdeteksi",
+        }
+
+        return JSONResponse(parsed_result)
+    
     
 
 @app.post('/scan-kis-gemini')
 async def scan_image_gemini(file: UploadFile):
-    # ... (Kode untuk memproses file, memanggil Gemini API, dan mengembalikan hasil)
-    # 1. Simpan gambar ke disk
+
     filename = file.filename
     file_ext = filename.rsplit('.', 1)[1].lower()
     file_name = f'image.{file_ext}'
@@ -147,29 +154,26 @@ async def scan_image_gemini(file: UploadFile):
         contents = await file.read()
         buffer.write(contents)
     
-    # 2. Konfigurasi Gemini API
+
     genai.configure(api_key='AIzaSyDG_Xhy4jDpbuITKkccIPJdO4vXM0POLLk') # Ganti dengan kunci API Google Anda
 
-    # 3.  Buat model Gemini
     model = genai.GenerativeModel(
         model_name="gemini-1.5-flash",
         system_instruction="Anda adalah system text recognition untuk membaca kartu bpjs, meliputi no kartu, nama, tanggal lahir, nik, faskes tingkat 1 lalu kelas rawat, selain itu tidak diperlukan, berikan raw datanya, dan tidak usah di parsing"
     )
 
-    # 4. Panggil Gemini API
     img = PIL.Image.open(file_name)
     response = model.generate_content(img)
     
-    # 5. Hapus gambar
     os.remove(file_name)
 
     data = {
-        "no_kartu": None,
-        "nama": None,
-        "alamat": None,
-        "tanggal_lahir": None,
-        "nik": None,
-        "faskes": None
+        "no_kartu": "Tidak terdeteksi",
+        "nama": "Tidak terdeteksi",
+        "alamat": "Tidak terdeteksi",
+        "tanggal_lahir": "Tidak terdeteksi",
+        "nik": "Tidak terdeteksi",
+        "faskes": "Tidak terdeteksi"
     }
 
     # Asumsi: data dipisah dengan baris baru
